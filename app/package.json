@@ -1,0 +1,21 @@
+{
+  "name": "readbuddy",
+  "private": true,
+  "version": "0.1.0",
+  "description": "ReadBuddy — reading practice for kids with reading difficulties (specification version B)",
+  "workspaces": [
+    "server",
+    "client"
+  ],
+  "scripts": {
+    "dev": "npm run dev --workspace server & npm run dev --workspace client",
+    "build": "npm run build --workspace client",
+    "start": "npm run start --workspace server",
+    "test": "npm test --workspace server",
+    "coverage": "npm run coverage --workspace server",
+    "typecheck": "npm run typecheck --workspace server && npm run typecheck --workspace client"
+  },
+  "engines": {
+    "node": ">=22.13"
+  }
+}
