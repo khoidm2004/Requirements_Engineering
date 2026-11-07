@@ -9,7 +9,7 @@ This repository compares two requirement styles for the same product idea:
 | **A** | Structured SRS (ISO/IEC/IEEE 29148-inspired) | [specification_A.md](document/application_doc/specification/specification_A.md), [architect_A.md](document/application_doc/architect/architect_A.md) |
 | **B** | Informal / weak requirements | [specification_B.md](document/application_doc/specification/specification_B.md), [architect_B.md](document/application_doc/architect/architect_B.md) |
 
-Both architectures use the **same core tech stack** (React, Firebase Auth/Firestore/Hosting/Functions, Cloudinary, one shared home page) so differences in **requirement quality** are easier to compare. Version B also uses Firebase Storage, because Spec B asks to keep reading recordings.
+The version A implementation lives in [`app/`](app/) — see [`app/README.md`](app/README.md) for setup and requirement coverage.
 
 ## Branches
 
