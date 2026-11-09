@@ -25,6 +25,10 @@ Both architectures use the **same core tech stack** (React, Firebase Auth/Firest
 | [`document/application_doc/`](document/application_doc/) | Specs, architectures, notes — see [Note.md](document/application_doc/Note.md) |
 | [`document/literature_review_doc/`](document/literature_review_doc/) | Literature review documents |
 
+## AI usage
+
+This project used **Claude Opus 5.5** (Anthropic, model ID `claude-opus-5-5`) through Claude Code as an AI assistant. The team reviewed all AI-assisted output and is responsible for the final content.
+
 ## Contributing
 
 Commit messages follow [CONTRIBUTING.md](CONTRIBUTING.md) (Conventional Commits).
