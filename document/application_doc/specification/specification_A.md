@@ -4,9 +4,9 @@
 |-------|-------|
 | Document | Software Requirements Specification (SRS) |
 | Product | ReadBuddy — web application supporting children with reading difficulties |
-| Version | A (complete specification) |
-| Status | Draft 1.0 |
-| Date | 2026-10-30 |
+| Version | A (structured specification) |
+| Status | Draft 1.7 |
+| Date | 2026-10-31 |
 | Structure | Adapted from ISO/IEC/IEEE 29148:2018 |
 
 ---
@@ -15,7 +15,7 @@
 
 ### 1.1 Purpose
 
-This document specifies the requirements for **ReadBuddy**, a web-based application that helps children with reading difficulties (including, but not limited to, dyslexia) practise reading in a supportive, accessible environment, and that lets parents and teachers follow the child's progress.
+This document specifies the requirements for **ReadBuddy**, a web-based application that helps children with reading difficulties (including, but not limited to, dyslexia) practise reading in a supportive, accessible environment, and that lets **teachers** follow the child's progress.
 
 The intended readers are the development team, testers, the course staff, and stakeholders who validate the requirements.
 
@@ -25,8 +25,9 @@ ReadBuddy **shall**:
 
 - provide short, adaptive reading exercises (phonics, syllables, word recognition, sentence and passage reading with comprehension questions);
 - provide reading-support tools (text-to-speech with word highlighting, adjustable typography and colours, line focus, syllable colouring);
-- record exercise results and present progress to parents and teachers;
-- let teachers assign exercises and add their own reading texts.
+- record exercise results and present progress to teachers;
+- let teachers create class groups, enrol students, assign exercises, add their own reading texts, and upload pictures for sentence–picture (E4) exercises;
+- provide a single home page as the application entry point for both children and teachers (FR-ACC-00).
 
 ReadBuddy **shall not**:
 
@@ -39,10 +40,10 @@ ReadBuddy **shall not**:
 
 | Term | Definition |
 |------|------------|
-| Child | End user aged 6–12 who practises reading in the application. |
-| Guardian | Parent or legal guardian who owns the account of one or more children. |
-| Teacher | Educator who manages one or more classes of children. |
-| Administrator | Operator staff member who manages the platform and its content library. |
+| Child / Student | End user aged 6–12 who practises reading in the application. |
+| Student number | Identifier assigned by the school (or teacher) and used with the student's name to sign in. |
+| Teacher | Educator who creates classes, enrols students and monitors progress. |
+| Class | A group of students managed by a teacher, identified by a unique class code. |
 | Exercise | A single, self-contained reading task (e.g. 10 words to read, one passage with 3 questions). |
 | Session | A continuous period of use by a child, from login to logout or timeout. |
 | Level | Difficulty step 1–10 of an exercise type; level 1 is easiest. |
@@ -56,12 +57,12 @@ ReadBuddy **shall not**:
 
 1. ISO/IEC/IEEE 29148:2018 — Systems and software engineering — Life cycle processes — Requirements engineering.
 2. W3C, *Web Content Accessibility Guidelines (WCAG) 2.2*, 2023.
-3. Regulation (EU) 2016/679 (GDPR), in particular Art. 8 (conditions applicable to child's consent).
+3. Regulation (EU) 2016/679 (GDPR).
 4. British Dyslexia Association, *Dyslexia Style Guide*, 2023.
 
 ### 1.5 Document overview
 
-Section 2 describes the product context, users and constraints. Section 3 lists functional requirements, Section 4 non-functional requirements, Section 5 data requirements. Section 6 gives traceability from stakeholder goals to requirements.
+Section 2 describes the product context, users and constraints. Section 3 lists functional requirements, Section 4 non-functional requirements, Section 5 data requirements. Section 6 gives traceability from stakeholder goals to requirements, and Section 7 lists open issues.
 
 ---
 
@@ -69,26 +70,22 @@ Section 2 describes the product context, users and constraints. Section 3 lists 
 
 ### 2.1 Product perspective
 
-ReadBuddy is a new, stand-alone web application accessed through a web browser on desktop computers, laptops and tablets. It consists of a browser client and a server back end. It uses an external TTS service and an external e-mail delivery service through their public APIs. It has no integration with school information systems in this release.
+ReadBuddy is a new, stand-alone web application accessed through a web browser on desktop computers, laptops and tablets. It consists of a browser client and back-end services (hosted application platform, data store, and serverless functions as needed). It uses an external TTS service, an external image-hosting service for teacher picture uploads, and e-mail delivery (including provider-built-in auth mail where applicable). It has no integration with school information systems in this release.
 
 ### 2.2 Stakeholders and goals
 
 | ID | Stakeholder | Goal |
 |----|-------------|------|
 | SG-1 | Child | Practise reading in short sessions without feeling frustrated or judged. |
-| SG-2 | Guardian | Support the child's practice at home and see whether the child is improving. |
-| SG-3 | Teacher | Give children targeted practice and monitor a whole class with little extra work. |
-| SG-4 | Administrator | Operate the service reliably and keep the content library up to date. |
-| SG-5 | Data protection officer | Ensure children's personal data is processed lawfully and minimally. |
+| SG-2 | Teacher | Give children targeted practice and monitor a whole class with little extra work. |
+| SG-3 | Data protection officer | Ensure children's personal data is processed lawfully and minimally. |
 
 ### 2.3 User classes and characteristics
 
 | User class | Characteristics | Frequency of use |
 |------------|-----------------|------------------|
-| Child | Age 6–12. Reading skill below age expectation. May not be able to read instructions. Short attention span (target session length 10–15 min). Uses mouse, keyboard or touch screen. | Daily or several times per week |
-| Guardian | Adult, any level of IT skill. Uses the app mainly to set up the child and read progress reports. | Weekly |
-| Teacher | Adult, basic IT skill. Manages up to 35 children per class and up to 10 classes. | Several times per week |
-| Administrator | Technical staff. | As needed |
+| Child | Age 6–12. Reading skill below age expectation. May need help reading the login form the first time. Short attention span (target session length 10–15 min). Uses mouse, keyboard or touch screen. | Daily or several times per week |
+| Teacher | Adult, basic IT skill. Manages up to 35 children per class and up to 10 classes. Creates classes and enrols students. | Several times per week |
 
 ### 2.4 Operating environment
 
@@ -103,13 +100,16 @@ ReadBuddy is a new, stand-alone web application accessed through a web browser o
 - C-2: The application shall be delivered as a web application; no installation on the user's device shall be required.
 - C-3: The user interface shall be available in English and Finnish at release.
 - C-4: The project budget allows a single development team of 5 students over 12 weeks; requirements marked *Could* may be postponed.
+- C-5: The shared content library is pre-seeded at deploy time (A-4) and is not edited through the application UI.
 
 ### 2.6 Assumptions and dependencies
 
 - A-1: A TTS service supporting English and Finnish with word-level timing information is available.
-- A-2: Guardians have an e-mail address.
+- A-2: Teachers have an e-mail address.
 - A-3: Schools provide devices with audio output (speakers or headphones) for children using the app at school.
-- A-4: Exercise content (word lists, passages, questions) for levels 1–10 is supplied by the content team before development of FR-EX requirements starts.
+- A-4: Baseline exercise content for levels 1–10 (word lists, passages, questions, and audio assets where needed) is supplied as seed data before release; updates to that baseline are done by redeploying seed content.
+- A-5: Each enrolled student has a student number that is unique within the platform (or unique within the school, if schools are modelled later).
+- A-6: An external image-hosting service is available for teacher-uploaded E4 pictures (see architecture for the chosen provider).
 
 ---
 
@@ -119,71 +119,69 @@ Each requirement has an ID, a priority (MoSCoW), a source (stakeholder goal) and
 
 ### 3.1 Accounts and authentication (ACC)
 
-**FR-ACC-01 — Guardian registration**
-The system shall allow a guardian to register an account with an e-mail address and a password.
+**FR-ACC-00 — Single home page**
+The system shall provide one home page (one primary entry URL/route) used by both children and teachers. The default view shall be the child login form (student number + name). The same page shall expose a control (e.g. link or tab) that reveals the teacher login form (e-mail + password). After successful authentication, the system shall navigate by role: child → practice home; teacher → class dashboard. Teacher registration and password-reset entry points may appear on this page or as short linked routes from it.
+- Priority: Must · Source: SG-1, SG-2
+- Acceptance: A classroom device opens a single URL; a child can sign in without opening a separate teacher page; a teacher can switch to the teacher form without changing site origin/path to a different login app.
+- Rationale: One entry point reduces deployment and classroom setup work while keeping distinct authentication methods per role (FR-ACC-01, FR-ACC-05).
+
+**FR-ACC-01 — Teacher registration**
+The system shall allow a teacher to register an account with an e-mail address and a password.
 - Priority: Must · Source: SG-2
-- Acceptance: Given a valid, unused e-mail address and a password that meets NFR-SEC-03, when the guardian submits the registration form, then an account is created in "unverified" state and a verification e-mail is sent within 2 minutes.
+- Acceptance: Given a valid, unused e-mail address and a password that meets NFR-SEC-03, when the teacher submits the registration form, then an account is created in "unverified" state and a verification e-mail is sent within 2 minutes.
 
-**FR-ACC-02 — E-mail verification**
-The system shall require a guardian to verify the e-mail address before child profiles can be created.
-- Priority: Must · Source: SG-5
-- Acceptance: An unverified guardian who opens "Add child" sees a message asking them to verify their e-mail; the verification link is valid for 24 hours.
+**FR-ACC-02 — Teacher e-mail verification**
+The system shall require a teacher to verify the e-mail address before creating classes or enrolling students.
+- Priority: Must · Source: SG-3
+- Acceptance: The verification link is valid for 24 hours; an unverified teacher who opens "Create class" is prompted to verify e-mail first.
 
-**FR-ACC-03 — Parental consent**
-The system shall record explicit parental consent, with a timestamp and the version of the privacy notice, before a child profile is created.
-- Priority: Must · Source: SG-5
-- Acceptance: A child profile cannot be saved unless the consent checkbox is ticked; the consent record is visible in the guardian's account settings.
-
-**FR-ACC-04 — Child profile**
-The system shall allow a guardian to create up to 6 child profiles, each with a first name or nickname, a birth year, a preferred language (English or Finnish) and an avatar chosen from a predefined set.
+**FR-ACC-03 — Class creation**
+The system shall allow a verified teacher to create a class (group) with a display name; the system shall assign a unique 6-character class code.
 - Priority: Must · Source: SG-2
-- Acceptance: The profile form contains exactly these fields; a 7th profile cannot be created; no surname, photo or full birth date is requested.
+- Acceptance: After creation, the teacher sees the class code; no two active classes share the same code.
 
-**FR-ACC-05 — Teacher registration**
-The system shall allow a teacher to register with an e-mail address and a password, and an administrator to approve the teacher account before it can create classes.
-- Priority: Must · Source: SG-3, SG-4
+**FR-ACC-04 — Enrol student in class**
+The system shall allow a teacher to add a student to one of their classes by entering **student name**, **student number**, preferred language (English or Finnish), and birth year.
+- Priority: Must · Source: SG-2
+- Acceptance: The student appears in the class roster; a duplicate student number is rejected with a clear error.
 
-**FR-ACC-06 — Class management**
-The system shall allow an approved teacher to create a class, which generates a unique 6-character class code.
+**FR-ACC-05 — Child login**
+The system shall let a child sign in by entering their **student number** and **name** (matching the enrolled record, case-insensitive on the name).
+- Priority: Must · Source: SG-1
+- Rationale: School roster login without a separate password for children.
+- Acceptance: A correct student number + name opens the child's home screen; an incorrect pair shows a generic error (no indication which field failed); after 5 consecutive failed attempts for the same student number the login for that student is locked for 5 minutes and the teacher can unlock it.
+
+**FR-ACC-06 — Session timeout**
+The system shall log out a child after 20 minutes without interaction and a teacher after 30 minutes without interaction.
 - Priority: Must · Source: SG-3
 
-**FR-ACC-07 — Linking a child to a class**
-The system shall allow a guardian to link a child profile to a class by entering the class code. The teacher shall see the child in the class only after the guardian has confirmed the link.
-- Priority: Must · Source: SG-3, SG-5
-- Acceptance: After the guardian enters a valid code and confirms, the child appears in the teacher's class list within 1 minute. An invalid code shows "Class code not found" and links nothing.
+**FR-ACC-07 — Teacher password reset**
+The system shall allow teachers to reset their password through a single-use link sent to their verified e-mail address, valid for 1 hour.
+- Priority: Must · Source: SG-2
 
-**FR-ACC-08 — Child login**
-The system shall let a child log in by selecting their avatar on the family or class login screen and entering a picture password consisting of a sequence of 3 pictures chosen from 9.
-- Priority: Must · Source: SG-1
-- Rationale: Children with reading difficulties cannot reliably type text passwords.
-- Acceptance: A child can complete login without reading any text; after 5 consecutive failed attempts the child profile is locked for 5 minutes and the guardian (or teacher) can reset the picture password.
+**FR-ACC-08 — Remove student**
+The system shall allow a teacher to remove a student from their class and to delete that student's personal data from the application. All personal data of a deleted student shall be permanently removed within 30 days (see DR-04).
+- Priority: Must · Source: SG-3
 
-**FR-ACC-09 — Session timeout**
-The system shall log out a child after 20 minutes without interaction and an adult user after 30 minutes without interaction.
-- Priority: Must · Source: SG-5
-
-**FR-ACC-10 — Password reset**
-The system shall allow guardians and teachers to reset their password through a single-use link sent to their verified e-mail address, valid for 1 hour.
-- Priority: Must · Source: SG-2, SG-3
-
-**FR-ACC-11 — Account deletion**
-The system shall allow a guardian to delete a child profile or the whole guardian account. All personal data of the deleted profile(s) shall be permanently removed within 30 days (see DR-04).
-- Priority: Must · Source: SG-5
+**FR-ACC-09 — Unlock student login**
+The system shall show the teacher which students in their classes are currently locked out (FR-ACC-05) and shall let the teacher unlock a student immediately.
+- Priority: Must · Source: SG-2
+- Acceptance: A locked student is marked in the class roster (FR-PRG-03); after the teacher selects "Unlock", the student can sign in at once and the failed-attempt counter is reset to 0.
 
 ### 3.2 Reading exercises (EX)
 
 **FR-EX-01 — Exercise types**
-The system shall provide the following exercise types, each in levels 1–10, in English and Finnish:
+The system shall provide the following exercise types. E1, E2, E3 and E5 shall be available in levels 1–10 in English and Finnish from the shared content library (FR-CNT-03). E4 shall be available at the levels and languages for which a teacher has created E4 items (FR-CNT-05); if no E4 item exists at a child's current level and language, E4 is not offered to that child.
 
 | Code | Exercise type | Description |
 |------|---------------|-------------|
 | E1 | Letter–sound | Child hears a sound and selects the matching letter or letter group from 3–6 options. |
 | E2 | Syllables | Child splits a displayed word into syllables by tapping between letters. |
 | E3 | Word recognition | Child hears a word and selects the matching written word from 4 similar-looking options. |
-| E4 | Sentence reading | Child reads a sentence and selects the picture that matches it from 3 options. |
-| E5 | Passage reading | Child reads a passage of 40–250 words and answers 3 multiple-choice comprehension questions. |
+| E4 | Sentence reading | Child reads a sentence and selects the picture that matches it from 3 options. Pictures are provided when a teacher creates the exercise (FR-CNT-05). |
+| E5 | Passage reading | Child reads a passage of 40–250 words and answers 3 multiple-choice comprehension questions (text only; no pictures required). |
 
-- Priority: Must (E1, E3, E5), Should (E2, E4) · Source: SG-1, SG-3
+- Priority: Must (E1, E3, E5), Should (E2, E4) · Source: SG-1, SG-2
 
 **FR-EX-02 — Audio instructions**
 The system shall play a spoken instruction automatically at the start of every exercise and shall provide a "repeat instruction" button with a speaker icon on every exercise screen.
@@ -207,12 +205,12 @@ The system shall adjust the level of each exercise type per child as follows:
 - if accuracy is ≥ 85 % in 3 consecutive exercises of that type, the level is increased by 1;
 - if accuracy is < 50 % in 2 consecutive exercises of that type, the level is decreased by 1;
 - the level never goes below 1 or above 10.
-- Priority: Must · Source: SG-1, SG-3
+- Priority: Must · Source: SG-1, SG-2
 - Acceptance: Unit tests cover all three rules and both boundaries.
 
 **FR-EX-07 — Initial placement**
-The system shall start every new child at a level derived from the child's age (age 6–7 → level 1, 8–9 → level 3, 10–12 → level 5), which the guardian or teacher may override.
-- Priority: Should · Source: SG-2, SG-3
+The system shall start every new child at a level derived from the child's age (age 6–7 → level 1, 8–9 → level 3, 10–12 → level 5), which the teacher may override.
+- Priority: Should · Source: SG-2
 
 **FR-EX-08 — Pause and resume**
 The system shall allow a child to leave an exercise at any time and resume it from the same item within 24 hours.
@@ -220,12 +218,12 @@ The system shall allow a child to leave an exercise at any time and resume it fr
 
 **FR-EX-09 — Read-aloud practice**
 The system shall offer an optional read-aloud mode for E4 and E5 in which the child's speech is recorded through the microphone and compared against the text using speech recognition, and the WCPM value is calculated.
-- Priority: Could · Source: SG-2, SG-3
-- Constraints: The mode is available only if the guardian has given a separate consent for audio processing. Audio recordings shall be processed and then deleted immediately; they shall not be stored (see DR-03).
+- Priority: Could · Source: SG-2
+- Constraints: Audio recordings shall be processed and then deleted immediately; they shall not be stored (see DR-03).
 
 **FR-EX-10 — Daily practice suggestion**
 The system shall present each child with a "Today's practice" set of 3 exercises, chosen from the types where the child's accuracy is lowest and from any exercises assigned by the teacher.
-- Priority: Should · Source: SG-1, SG-3
+- Priority: Should · Source: SG-1, SG-2
 
 ### 3.3 Reading-support tools (SUP)
 
@@ -282,57 +280,46 @@ The system shall not display leaderboards, rankings or any other children's resu
 
 **FR-PRG-01 — Result recording**
 The system shall record, for each completed exercise: child ID, exercise type, level, number of items, number of correct items, duration, date and time, and WCPM (if read-aloud mode was used).
-- Priority: Must · Source: SG-2, SG-3
+- Priority: Must · Source: SG-2
 
-**FR-PRG-02 — Guardian dashboard**
-The system shall show a guardian, per child: total practice time per week, number of exercises completed per week, current level per exercise type, and accuracy trend per exercise type over the last 12 weeks as a line chart.
+**FR-PRG-02 — Teacher child detail**
+The system shall show a teacher, per child in their class: total practice time per week, number of exercises completed per week, current level per exercise type, and accuracy trend per exercise type over the last 12 weeks as a line chart.
 - Priority: Must · Source: SG-2
 
 **FR-PRG-03 — Teacher class overview**
-The system shall show a teacher a table of all children in a class with columns: name, practice time in the last 7 days, exercises in the last 7 days, current level per exercise type, and an indicator for children who have not practised in 7 days.
-- Priority: Must · Source: SG-3
+The system shall show a teacher a table of all children in a class with columns: name, student number, practice time in the last 7 days, exercises in the last 7 days, current level per exercise type, an indicator for children who have not practised in 7 days, and an indicator for children whose login is locked (FR-ACC-09).
+- Priority: Must · Source: SG-2
 - Acceptance: The table is sortable by every column and loads within the time stated in NFR-PERF-01 for a class of 35 children.
 
-**FR-PRG-04 — Teacher child detail**
-The system shall allow a teacher to open the same per-child view as the guardian (FR-PRG-02) for any child in their class.
-- Priority: Should · Source: SG-3
-
-**FR-PRG-05 — Weekly e-mail summary**
-The system shall send each guardian an optional weekly e-mail every Sunday at 18:00 local time summarising each child's practice time, exercises completed and level changes. Guardians can switch it on or off; it is off by default.
-- Priority: Could · Source: SG-2
-
-**FR-PRG-06 — Export**
+**FR-PRG-04 — Export**
 The system shall allow a teacher to export the class overview (FR-PRG-03) as a CSV file.
-- Priority: Could · Source: SG-3
+- Priority: Could · Source: SG-2
 
 ### 3.6 Content and assignments (CNT)
 
 **FR-CNT-01 — Assignments**
-The system shall allow a teacher to assign one or more exercises (type and level, or a specific teacher text) to a whole class or to selected children, with an optional due date.
-- Priority: Should · Source: SG-3
+The system shall allow a teacher to assign one or more exercises (type and level, a specific teacher text (FR-CNT-02), or a specific teacher E4 item (FR-CNT-05)) to a whole class or to selected children, with an optional due date.
+- Priority: Should · Source: SG-2
 - Acceptance: Assigned exercises appear in the child's "Today's practice" (FR-EX-10) from the next login.
 
-**FR-CNT-02 — Teacher texts**
-The system shall allow a teacher to add a reading passage of 40–250 words with 3 multiple-choice questions, which becomes available as an E5 exercise for that teacher's classes only.
-- Priority: Should · Source: SG-3
+**FR-CNT-02 — Teacher texts (E5)**
+The system shall allow a teacher to add a reading passage of 40–250 words with 3 multiple-choice **text** questions, and to set its level (1–10) and language (English or Finnish). The passage becomes available as an E5 exercise at that level and language for that teacher's classes only.
+- Priority: Should · Source: SG-2
+- Acceptance: The level and language fields are required; the saved text is offered to children of the teacher's classes whose current E5 level and language match, and can be assigned directly (FR-CNT-01).
 
-**FR-CNT-03 — Content library management**
-The system shall allow an administrator to create, edit, deactivate and preview exercises in the shared content library. Deactivated exercises are no longer offered to children; recorded results are kept.
-- Priority: Must · Source: SG-4
+**FR-CNT-03 — Shared content library**
+The system shall offer children exercises from a shared content library that is pre-seeded at deployment (A-4, C-5) and covers E1, E2, E3 and E5 in levels 1–10 in English and Finnish. E4 is not part of the shared library (see FR-CNT-05). Teachers shall not create, edit or deactivate shared-library items through the UI.
+- Priority: Must · Source: SG-2
 
 **FR-CNT-04 — Content review**
-The system shall prevent a teacher text from being shown to children until the teacher has previewed it with TTS at least once.
-- Priority: Could · Source: SG-3
+The system shall prevent a teacher-created exercise (E4 or E5) from being shown to children until the teacher has previewed it with TTS at least once.
+- Priority: Could · Source: SG-2
 
-### 3.7 Administration (ADM)
-
-**FR-ADM-01 — Teacher approval**
-The system shall provide administrators a list of pending teacher accounts with approve and reject actions.
-- Priority: Must · Source: SG-4
-
-**FR-ADM-02 — Audit log**
-The system shall log every administrator action and every access by a teacher or administrator to a child's data, with user ID, action and timestamp, and keep the log for 12 months.
-- Priority: Must · Source: SG-5
+**FR-CNT-05 — Teacher sentence–picture items (E4)**
+The system shall allow a teacher to create an E4 exercise for their classes by entering a sentence, setting its level (1–10) and language (English or Finnish), and uploading **three** pictures (one correct match and two distractors). For each picture the teacher shall enter a short text label (1–5 words, e.g. "a red ball"); the label is used as the picture's text alternative and is the text read aloud when the correct picture is revealed (FR-EX-04). Uploaded pictures shall be stored via the external image-hosting service (A-6); the application shall persist only the image references (e.g. URL or public ID) and labels, not raw image binaries in the primary database.
+- Priority: Should · Source: SG-2
+- Acceptance: The sentence, level, language, three pictures and three labels are all required. After save, the exercise appears for assignment (FR-CNT-01); the child sees the sentence and three pictures; selecting the correct picture counts as a correct answer; screen readers announce each picture by its label. Rejected uploads (wrong type or over size limit) show a clear error and do not create a partial exercise.
+- Constraints: Allowed formats JPEG/PNG/WebP; maximum file size 2 MB per image. Pictures shall not show identifiable people (including students); before upload the teacher shall confirm this with a checkbox, and the upload form shall state the rule.
 
 ---
 
@@ -340,8 +327,8 @@ The system shall log every administrator action and every access by a teacher or
 
 ### 4.1 Usability (US)
 
-- **NFR-US-01** — A child aged 6 who cannot read shall be able to log in and complete a level-1 E1 exercise without adult help. *Verification:* usability test with ≥ 5 children aged 6–7; ≥ 4 of 5 succeed.
-- **NFR-US-02** — A first-time guardian shall be able to register, create a child profile and start the child's first exercise within 10 minutes. *Verification:* usability test with ≥ 5 guardians; median time ≤ 10 min.
+- **NFR-US-01** — A child shall be able to sign in with student number and name and complete a level-1 E1 exercise; login fields shall have audio labels. *Verification:* usability test with ≥ 5 children aged 6–7 (teacher may assist with typing once); ≥ 4 of 5 complete the exercise.
+- **NFR-US-02** — A first-time verified teacher shall be able to create a class, enrol one student and open that student's progress view within 15 minutes. *Verification:* usability test with ≥ 5 teachers; median time ≤ 15 min.
 - **NFR-US-03** — Every interactive element used by children shall have a touch/click target of at least 48 × 48 CSS pixels.
 - **NFR-US-04** — Child-facing screens shall contain at most 3 primary actions and shall use icons with audio labels in addition to text.
 - **NFR-US-05** — The application shall not use timed tasks for children except in read-aloud mode (FR-EX-09), where timing is not shown to the child.
@@ -368,17 +355,18 @@ The system shall log every administrator action and every access by a teacher or
 ### 4.5 Security (SEC)
 
 - **NFR-SEC-01** — All communication shall use HTTPS with TLS 1.2 or higher.
-- **NFR-SEC-02** — Passwords and picture passwords shall be stored only as salted hashes using Argon2id or bcrypt.
-- **NFR-SEC-03** — Adult passwords shall be at least 10 characters and shall not appear in a list of known breached passwords.
-- **NFR-SEC-04** — Access control shall be role-based: a guardian sees only their own children; a teacher sees only children linked to their classes; a child sees only their own data.
+- **NFR-SEC-02** — Teacher passwords shall be stored only as salted hashes by the authentication service (e.g. Argon2id, bcrypt, or the equivalent salted-hash scheme of a managed auth provider such as Firebase Authentication). Plaintext passwords shall never be stored.
+- **NFR-SEC-03** — Teacher passwords shall be at least 10 characters and shall not appear in a list of known breached passwords.
+- **NFR-SEC-04** — Access control shall be role-based: a teacher sees only students in their classes; a child sees only their own data.
 - **NFR-SEC-05** — The application shall have no high or critical findings in an OWASP Top 10 based security test before release.
+- **NFR-SEC-06** — Child login (student number + name) is a low-assurance school roster check; the system shall not expose whether a student number exists independently of the name match (see FR-ACC-05).
 
 ### 4.6 Privacy (PRV)
 
 - **NFR-PRV-01** — The system shall process personal data in compliance with GDPR; a privacy notice in plain language, with a child-friendly audio version, shall be available from every page.
 - **NFR-PRV-02** — The system shall collect only the data listed in Section 5.
 - **NFR-PRV-03** — No third-party analytics, advertising or tracking cookies shall be used.
-- **NFR-PRV-04** — Text sent to the TTS service shall not contain child identifiers.
+- **NFR-PRV-04** — Text sent to the TTS service shall not contain child identifiers (including student number).
 
 ### 4.7 Maintainability and portability (MNT)
 
@@ -392,12 +380,12 @@ The system shall log every administrator action and every access by a teacher or
 
 | ID | Requirement |
 |----|-------------|
-| DR-01 | The system shall store the following personal data only: guardian and teacher e-mail, password hash, name of teacher; child nickname, birth year, language, avatar, picture-password hash, settings (FR-SUP-02 to -06), results (FR-PRG-01), consent records (FR-ACC-03, FR-EX-09). |
+| DR-01 | The system shall store the following personal data only: teacher e-mail, password hash, teacher name; child student number, name, birth year, language, current level per exercise type, settings (FR-SUP-02 to -06), results (FR-PRG-01), stars and owned reward items (FR-MOT-01, -02), failed-login count and lock time (FR-ACC-05, -09), paused-exercise progress for up to 24 hours (FR-EX-08), and assignments addressed to the child (FR-CNT-01). Teacher exercise content (texts, E4 sentences, picture labels and image references for FR-CNT-02, -05) may be stored; it contains no personal data, and image binaries are held by the external image host (A-6). |
 | DR-02 | All personal data shall be stored in data centres located in the EEA (C-1), encrypted at rest. |
 | DR-03 | Audio recorded in read-aloud mode shall not be stored after the WCPM value is calculated. |
-| DR-04 | Data of deleted accounts shall be removed from the live database immediately and from backups within 30 days. |
-| DR-05 | Child data of accounts with no login for 24 months shall be deleted after the guardian has been notified by e-mail 30 days in advance. |
-| DR-06 | A guardian shall be able to download all stored data of their children in JSON format (GDPR Art. 20). |
+| DR-04 | Data of deleted students or teacher accounts shall be removed from the live database immediately and from backups within 30 days. |
+| DR-05 | Child data with no login for 24 months shall be deleted after the responsible teacher has been notified by e-mail 30 days in advance. |
+| DR-06 | A teacher shall be able to download stored data for students in their classes in JSON format (GDPR Art. 20 support via the school/teacher as contact point). |
 
 ---
 
@@ -405,11 +393,9 @@ The system shall log every administrator action and every access by a teacher or
 
 | Stakeholder goal | Requirements |
 |------------------|--------------|
-| SG-1 Child | FR-ACC-08, FR-EX-01–10, FR-SUP-01–07, FR-MOT-01–03, NFR-US-01, -03, -04, -05, NFR-ACS-01–03, NFR-PERF-02, -03 |
-| SG-2 Guardian | FR-ACC-01, -04, -10, FR-EX-07, -09, FR-PRG-01, -02, -05, NFR-US-02 |
-| SG-3 Teacher | FR-ACC-05–07, FR-EX-01, -06, -07, -10, FR-PRG-03, -04, -06, FR-CNT-01, -02, -04 |
-| SG-4 Administrator | FR-ACC-05, FR-CNT-03, FR-ADM-01, NFR-REL-01–03, NFR-MNT-01–03 |
-| SG-5 Data protection | FR-ACC-02, -03, -07, -09, -11, FR-ADM-02, NFR-SEC-01–05, NFR-PRV-01–04, DR-01–06 |
+| SG-1 Child | FR-ACC-00, -05–06, FR-EX-01–10, FR-SUP-01–07, FR-MOT-01–03, NFR-US-01, -03, -04, -05, NFR-ACS-01–03, NFR-PERF-01–04 |
+| SG-2 Teacher | FR-ACC-00–01, -03–04, -07–09, FR-EX-01, -06, -07, -09, -10, FR-PRG-01–04, FR-CNT-01–05, NFR-US-02, NFR-PERF-01, -04, NFR-REL-01–03, NFR-MNT-01–03 |
+| SG-3 Data protection | FR-ACC-02, -06, -08, NFR-SEC-01–06, NFR-PRV-01–04, DR-01–06 |
 
 ---
 
