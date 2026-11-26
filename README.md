@@ -28,7 +28,7 @@ Literature review materials are **not** stored in this repository.
 
 ## AI usage
 
-This project used **Claude Opus 5.5** (Anthropic, model ID `claude-opus-5-5`) + **Composer 2.5** (Cursor) through Claude Code and Cursor AI IDE as AI assistants. The team reviewed all AI-assisted output and is responsible for the final content.
+This project used **Claude Opus 5.5** (Anthropic, model ID `claude-opus-5-5`) through Claude Code as AI assistant. The team reviewed all AI-assisted output and is responsible for the final content.
 
 ## Contributing
 
