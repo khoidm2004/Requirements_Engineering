@@ -23,7 +23,8 @@ Both architectures use the **same core tech stack** (React, Firebase Auth/Firest
 | Path | Purpose |
 |------|---------|
 | [`document/application_doc/`](document/application_doc/) | Specs, architectures, notes — see [Note.md](document/application_doc/Note.md) |
-| [`document/literature_review_doc/`](document/literature_review_doc/) | Literature review documents |
+
+Literature review materials are **not** stored in this repository.
 
 ## Contributing
 
